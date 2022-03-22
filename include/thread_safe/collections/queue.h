@@ -20,7 +20,12 @@ namespace thread_safe
             class QueueFull : public std::exception {};
             class QueueEmpty : public std::exception {};
 
-            Queue(size_t capacity) : _queue{capacity}, capacity{capacity} {}
+            Queue(size_t capacity) : capacity{capacity} {
+                std::deque<T> d{};
+                d.resize(capacity);
+                d.clear();
+                _queue = std::queue<T>{d};
+            }
 
             size_t size() { return _queue.size(); }
             bool is_empty() { return size() == 0; }
@@ -28,7 +33,7 @@ namespace thread_safe
 
             void enqueue(const T& value)
             {
-                enqueue(value, std::chrono::seconds(3600 * 24 * 365 * 100));    // 100 years
+                enqueue(value, std::chrono::seconds(inf_timeout));    // 100 years
             }
 
             template<typename Rep, typename Period>
@@ -46,12 +51,12 @@ namespace thread_safe
 
             std::unique_ptr<T> dequeue()
             {
-                return dequeue(std::chrono::seconds(3600 * 24 * 365 * 100));    // 100 years
+                return dequeue(std::chrono::seconds(inf_timeout));    // 100 years
             }
 
             void dequeue(T *out)
             {
-                dequeue(out, std::chrono::seconds(3600 * 24 * 365 * 100));    // 100 years
+                dequeue(out, std::chrono::seconds(inf_timeout));    // 100 years
             }
 
             template<typename Rep, typename Period>
@@ -71,12 +76,13 @@ namespace thread_safe
             template<typename Rep, typename Period>
             std::unique_ptr<T> dequeue(const std::chrono::duration<Rep, Period> &timeout)
             {
-                auto re = std::make_unique<T>{nullptr};
-                dequeue(re.get(), timeout);
-                return re;
+                T *out;
+                dequeue(out, timeout);
+                return std::make_unique<T>(*out);
             }
 
         private:
+            const int64_t inf_timeout{3600L * 24L * 365L * 100L};
             size_t capacity;
             std::queue<T> _queue;
             std::timed_mutex mtx{};
