@@ -28,7 +28,7 @@ namespace thread_safe
             bool is_empty() { return size() == 0; }
             bool is_full() { return size() == capacity; }
 
-            bool enqueue(const T& value)
+            void enqueue(const T& value)
             {
                 return enqueue(value, std::chrono::seconds(inf_timeout));    // 100 years
             }
