@@ -30,7 +30,8 @@ namespace thread_safe
 
             void enqueue(const T& value)
             {
-                return enqueue(value, std::chrono::seconds(inf_timeout));    // 100 years
+                auto re = enqueue(value, std::chrono::seconds(inf_timeout));    // 100 years
+                if (!re) throw std::runtime_error{"Failed enqueuing with infinite timeout."};
             }
 
             template<typename Rep, typename Period>
